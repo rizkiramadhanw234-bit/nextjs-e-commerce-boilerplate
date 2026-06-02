@@ -12,13 +12,9 @@ import Paginations from "./Pagination";
 import { useRef } from "react";
 
 import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from "@/components/ui/combobox";
+  NativeSelect,
+  NativeSelectOption,
+} from "@/components/ui/native-select";
 
 export default function ProductList() {
   const debouncedSearch = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -37,7 +33,7 @@ export default function ProductList() {
 
   const categoryList = allCategories.data ?? [];
   const categoryOptions = categoryList.map((cat) => cat.slug);
-  const isFiltering = categoryProducts.isSuccess;
+  const isFiltering = category !== "all";
 
   const products = isSearching
     ? (searchProducts.data?.products ?? [])
@@ -95,22 +91,19 @@ export default function ProductList() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Combobox
-              items={categoryOptions}
-              onValueChange={(value) => setCategory(value as string)}
+            <NativeSelect
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
             >
-              <ComboboxInput placeholder="Select a category" />
-              <ComboboxContent>
-                <ComboboxEmpty>No items found.</ComboboxEmpty>
-                <ComboboxList>
-                  {(item) => (
-                    <ComboboxItem key={item} value={item}>
-                      {item}
-                    </ComboboxItem>
-                  )}
-                </ComboboxList>
-              </ComboboxContent>
-            </Combobox>
+              <NativeSelectOption value="all">
+                Select Category
+              </NativeSelectOption>
+              {categoryOptions.map((item) => (
+                <NativeSelectOption key={item} value={item}>
+                  {item}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
           </div>
         </div>
 
