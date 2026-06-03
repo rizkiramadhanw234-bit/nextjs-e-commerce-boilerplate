@@ -1,45 +1,40 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type {
-  authType,
-  authResponseType,
-  refreshTokenType,
-} from "../types/authType";
-import { login, logout, checkAuth, refreshToken } from "../services/authAxios";
+import type { authType, authResponseType } from "../types/authType";
+import { login, logout, checkAuth } from "../services/authAxios";
 
 export type authStore = {
   loading: boolean;
   error: string | null;
   accessToken: string | null;
-  refreshToken: string | null;
   user: authResponseType | null;
+  isHydrated: boolean;
   setUser: (user: authResponseType | null) => void;
   login: (data: authType) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<boolean>;
-  refreshTokenAction: (data: refreshTokenType) => Promise<void>;
 };
 
 export const useAuthStore = create<authStore>()(
   persist(
     (set) => ({
-      loading: true,
+      loading: false,
       error: null,
       accessToken: null,
       refreshToken: null,
       user: null,
+      isHydrated: false,
       setUser: (user: authResponseType | null) => set({ user }),
 
       login: async (data: authType) => {
         set({ loading: true, error: null });
         try {
           const res = await login(data);
-          const { accessToken, refreshToken } = res;
+          const { accessToken } = res;
           localStorage.setItem("accessToken", accessToken);
-          localStorage.setItem("refreshToken", refreshToken);
-          set({ accessToken, refreshToken, user: res, loading: false });
+          set({ accessToken, user: res });
         } catch (error) {
-          set({ error: (error as Error).message, loading: false });
+          set({ error: (error as Error).message });
         } finally {
           set({ loading: false });
         }
@@ -50,57 +45,27 @@ export const useAuthStore = create<authStore>()(
         try {
           await logout();
           localStorage.removeItem("accessToken");
-          localStorage.removeItem("refreshToken");
           set({
             accessToken: null,
-            refreshToken: null,
             user: null,
-            loading: false,
           });
         } catch (error) {
-          set({ error: (error as Error).message, loading: false });
+          set({ error: (error as Error).message });
         } finally {
           set({ loading: false });
         }
       },
 
       checkAuth: async () => {
-        const accessToken = useAuthStore.getState().accessToken;
-        if (!accessToken) {
-          set({ loading: false });
-          return false;
-        }
         set({ loading: true, error: null });
         try {
           const res = await checkAuth();
-          set({
-            user: res,
-            accessToken: res.accessToken,
-            refreshToken: res.refreshToken,
-            loading: false,
-          });
+          set({ user: res, accessToken: res.accessToken });
           return true;
-        } catch (error) {
-          set({ error: (error as Error).message, loading: false });
+        } catch {
+          localStorage.removeItem("accessToken");
+          set({ accessToken: null, user: null });
           return false;
-        } finally {
-          set({ loading: false });
-        }
-      },
-
-      refreshTokenAction: async (data: refreshTokenType) => {
-        set({ loading: true, error: null });
-        try {
-          const res = await refreshToken(data);
-          localStorage.setItem("accessToken", res.accessToken);
-          localStorage.setItem("refreshToken", res.refreshToken);
-          set({
-            accessToken: res.accessToken,
-            refreshToken: res.refreshToken,
-            loading: false,
-          });
-        } catch (error) {
-          set({ error: (error as Error).message, loading: false });
         } finally {
           set({ loading: false });
         }
@@ -110,9 +75,13 @@ export const useAuthStore = create<authStore>()(
       name: "auth-storage",
       partialize: (state) => ({
         accessToken: state.accessToken,
-        refreshToken: state.refreshToken,
         user: state.user,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.isHydrated = true;
+        }
+      },
     },
   ),
 );

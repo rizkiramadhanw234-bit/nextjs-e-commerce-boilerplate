@@ -9,7 +9,7 @@ import {
 import { useProductStore } from "@/stores/productStore";
 import ProductCard from "./productCard";
 import Paginations from "./Pagination";
-import { useRef } from "react";
+import { useRef, useCallback } from "react";
 
 import {
   NativeSelect,
@@ -55,13 +55,16 @@ export default function ProductList() {
       ? categoryProducts.isLoading
       : allProducts.isLoading;
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (debouncedSearch.current) clearTimeout(debouncedSearch.current);
-    const value = e.target.value;
-    debouncedSearch.current = setTimeout(() => {
-      setSearch(value);
-    }, 500);
-  };
+  const handleSearch = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (debouncedSearch.current) clearTimeout(debouncedSearch.current);
+      const value = e.target.value;
+      debouncedSearch.current = setTimeout(() => {
+        setSearch(value);
+      }, 500);
+    },
+    [debouncedSearch, setSearch],
+  );
 
   if (isLoading)
     return (

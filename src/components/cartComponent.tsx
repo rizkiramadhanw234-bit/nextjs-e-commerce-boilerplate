@@ -11,8 +11,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
 import { Button } from "@/components/ui/button";
+import { useCallback } from "react";
 
 export default function CartComponent() {
   const { user } = useAuthStore();

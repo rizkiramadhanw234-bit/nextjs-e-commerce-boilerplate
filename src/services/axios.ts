@@ -4,26 +4,14 @@ const api = axios.create({
   baseURL: "https://dummyjson.com",
   headers: { "Content-Type": "application/json" },
   withCredentials: true,
+  timeout: 10000,
 });
 
-const getStoredToken = (key: "accessToken" | "refreshToken") => {
-  const directToken = localStorage.getItem(key);
-  if (directToken) return directToken;
-
-  const stored = localStorage.getItem("auth-storage");
-  if (!stored) return null;
-
-  try {
-    const parsed = JSON.parse(stored);
-    return parsed?.[key] ?? parsed?.state?.[key] ?? null;
-  } catch {
-    return null;
-  }
-};
+const getAccessToken = () => localStorage.getItem("accessToken");
 
 // Request interceptor
 api.interceptors.request.use((config) => {
-  const token = getStoredToken("accessToken");
+  const token = getAccessToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -40,26 +28,20 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = getStoredToken("refreshToken");
-
         const response = await axios.post(
           "https://dummyjson.com/auth/refresh",
-          {
-            refreshToken,
-            expiresInMins: 30,
-          },
+          { expiresInMins: 30 },
           { withCredentials: true },
         );
 
-        const { accessToken, refreshToken: newRefreshToken } = response.data;
+        const { accessToken } = response.data;
         localStorage.setItem("accessToken", accessToken);
-        localStorage.setItem("refreshToken", newRefreshToken);
 
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
         localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
+
         return Promise.reject(refreshError);
       }
     }

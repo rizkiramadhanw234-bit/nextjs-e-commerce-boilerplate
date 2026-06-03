@@ -14,6 +14,7 @@ import { Button } from "./ui/button";
 import Link from "next/link";
 import { useAddToCart } from "@/hooks/cartQuery";
 import { useAuthStore } from "@/stores/authStore";
+import { useCallback } from "react";
 
 interface ProductCardProps {
   product: productType;
@@ -25,12 +26,15 @@ export default function ProductCard({ product }: ProductCardProps) {
   const isCartAdded = addToCart.isSuccess;
   const { user } = useAuthStore();
 
-  const handleAddToCart = async (id: number) => {
-    await addToCart.mutateAsync({
-      userId: user?.id || 0,
-      products: [{ id, quantity: 1 }],
-    });
-  };
+  const handleAddToCart = useCallback(
+    async (id: number) => {
+      await addToCart.mutateAsync({
+        userId: user?.id || 0,
+        products: [{ id, quantity: 1 }],
+      });
+    },
+    [addToCart, user?.id],
+  );
 
   return (
     <>
