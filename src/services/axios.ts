@@ -28,9 +28,10 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
+        const refreshToken = localStorage.getItem("refreshToken");
         const response = await axios.post(
           "https://dummyjson.com/auth/refresh",
-          { expiresInMins: 30 },
+          { refreshToken, expiresInMins: 30 },
           { withCredentials: true },
         );
 

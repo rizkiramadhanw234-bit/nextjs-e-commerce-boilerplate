@@ -12,12 +12,17 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { user, isHydrated, loading } = useAuthStore();
+  const { accessToken, isHydrated } = useAuthStore();
 
   useEffect(() => {
     if (!isHydrated) return;
-    if (!user && !loading) router.push("/login");
-  }, [user, isHydrated, loading, router]);
+    if (!accessToken) {
+      router.push("/login");
+    }
+  }, [accessToken, isHydrated, router]);
+
+  if (!isHydrated) return null;
+  if (!accessToken) return null;
 
   return (
     <div className="flex flex-col min-h-screen">

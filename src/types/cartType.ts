@@ -27,10 +27,6 @@ export type updateCartType = {
   products?: { id: number; quantity: number }[];
 };
 
-export type deleteCartType = {
-  id: number;
-};
-
 export type cartResponse = {
   carts: cartType[];
   total: number;

@@ -42,8 +42,8 @@ export const useAddToCart = () => {
 export const useUpdateCart = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: updateCartType }) =>
-      updateCart(id, data),
+    mutationFn: async ({ id, data }: { id: number; data: updateCartType }) =>
+      await updateCart(id, data),
 
     onSuccess: (res) => {
       const userId = res.userId;
@@ -59,7 +59,7 @@ export const useUpdateCart = () => {
 export const useDeleteCart = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: deleteCart,
+    mutationFn: async (id: number) => await deleteCart(id),
     onSuccess: (res) => {
       queryClient.removeQueries({
         queryKey: cartKeys.byUser(res.id),

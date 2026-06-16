@@ -49,11 +49,10 @@ export default function ProductList() {
 
   const totalPages = Math.ceil(totalProducts / limit);
 
-  const isLoading = isSearching
-    ? searchProducts.isLoading
-    : isFiltering
-      ? categoryProducts.isLoading
-      : allProducts.isLoading;
+  const isLoading =
+    searchProducts.isLoading ||
+    categoryProducts.isLoading ||
+    allProducts.isLoading;
 
   const handleSearch = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,34 +65,19 @@ export default function ProductList() {
     [debouncedSearch, setSearch],
   );
 
-  if (isLoading)
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Loading...</p>
-      </div>
-    );
-
   return (
     <>
-      <div>
-        <div className="flex justify-between items-center mb-2">
-          <div>
+      <div className="min-h-screen py-4 px-20">
+        <div className="w-full flex-row items-center justify-center">
+          <div className="flex justify-between items-center pb-4">
             <input
               type="text"
               placeholder="Search..."
               defaultValue={search}
               onChange={handleSearch}
-              className="border border-gray-300 rounded-sm px-2 py-1 w-50 mb-4"
+              className="border border-gray-300 rounded-sm px-2 py-1 w-50"
             />
-            <button
-              className="relative -left-5 text-gray-400"
-              onClick={() => setSearch("")}
-            >
-              x
-            </button>
-          </div>
 
-          <div className="flex items-center gap-2">
             <NativeSelect
               value={category}
               onChange={(e) => setCategory(e.target.value)}
@@ -108,23 +92,26 @@ export default function ProductList() {
               ))}
             </NativeSelect>
           </div>
+          {isLoading ? (
+            <div className="h-screen flex items-center justify-center">
+              <p>Loading...</p>
+            </div>
+          ) : (
+            <>
+              {products?.length === 0 ? (
+                <div className="flex items-center justify-center">
+                  <p>No products found.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-4 items-center gap-8">
+                  {products.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
         </div>
-
-        {isLoading ? (
-          <div>
-            <p>Loading...</p>
-          </div>
-        ) : products?.length === 0 ? (
-          <div>
-            <p>No products found.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-4 gap-10">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        )}
 
         <div className="mt-7 mb-4">
           <Paginations totalPages={totalPages} />
