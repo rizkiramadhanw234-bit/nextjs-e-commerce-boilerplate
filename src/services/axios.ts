@@ -28,21 +28,14 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem("refreshToken");
-        const response = await axios.post(
-          "https://dummyjson.com/auth/refresh",
-          { refreshToken, expiresInMins: 30 },
-          { withCredentials: true },
-        );
-
+        const response = await axios.post("https://dummyjson.com/auth/refresh");
         const { accessToken } = response.data;
         localStorage.setItem("accessToken", accessToken);
-
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
         localStorage.removeItem("accessToken");
-
+        window.location.href = "/login";
         return Promise.reject(refreshError);
       }
     }
